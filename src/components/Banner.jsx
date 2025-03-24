@@ -10,7 +10,10 @@ const Banner = () => {
     const [image, setImage] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+    const [uploadProgress, setUploadProgress] = useState(0);
     const fileInputRef = useRef(null);
+
+    const MAX_CHARACTERS = 250;
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -18,10 +21,18 @@ const Banner = () => {
             if (file.type.startsWith("image/")) {
                 setIsLoading(true);
                 setError("");
+                setUploadProgress(0);
+
                 const reader = new FileReader();
                 reader.onloadend = () => {
                     setImage(reader.result);
                     setIsLoading(false);
+                };
+                reader.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const progress = Math.round((event.loaded / event.total) * 100);
+                        setUploadProgress(progress);
+                    }
                 };
                 reader.readAsDataURL(file);
             } else {
@@ -41,11 +52,17 @@ const Banner = () => {
         }
     };
 
+    const handleTextChange = (e) => {
+        if (e.target.value.length <= MAX_CHARACTERS) {
+            setText(e.target.value);
+        }
+    };
+
     return (
         <div className="p-6 max-w-2xl mx-auto">
             <h1 className="text-3xl font-bold text-center mb-4">Banner Page</h1>
             <div
-                className="relative w-full h-48 flex flex-col items-center justify-center text-white text-lg font-bold text-center p-4 rounded-md shadow-lg transition-colors duration-300 md:h-64 md:text-2xl"
+                className="relative w-full h-48 flex flex-col items-center justify-center text-white text-lg font-bold text-center p-4 rounded-md shadow-lg transition-colors duration-300 md:h-64 md:text-3xl"
                 style={{ backgroundColor: bgColor }}
             >
                 <div
@@ -53,7 +70,11 @@ const Banner = () => {
                     style={{ backgroundColor: bgColor }}
                 >
                     {isLoading ? (
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                        <div className="w-full h-full flex items-center justify-center">
+                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                                <div className="w-12 h-12 bg-blue-500 rounded-full animate-pulse"></div>
+                            </div>
+                        </div>
                     ) : (
                         <img
                             src={image || PlaceholderImage}
@@ -91,11 +112,15 @@ const Banner = () => {
                     <textarea
                         id="banner-text-input"
                         value={text}
-                        onChange={(e) => setText(e.target.value)}
+                        onChange={handleTextChange}
                         className="p-2 border rounded w-full resize-none h-16 transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                         aria-label="Enter banner text"
                         data-testid="banner-input"
+                        maxLength={MAX_CHARACTERS}
                     />
+                    <div className="text-sm text-gray-500 mt-1">
+                        {text.length}/{MAX_CHARACTERS} characters
+                    </div>
                 </div>
                 <div className="container flex flex-col space-y-4 item-center px-6 mx-auto mt-10 md:flex-row md:space-x-4 md:justify-center md:text-center">
                     <div className="flex justify-center">
@@ -142,6 +167,15 @@ const Banner = () => {
                         />
                     </div>
                 </div>
+
+                {isLoading && (
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div
+                            className="bg-blue-600 h-2.5 rounded-full"
+                            style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                    </div>
+                )}
 
                 <div className="flex items-center justify-center text-center space-x-6">
                     <button
