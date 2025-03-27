@@ -79,7 +79,7 @@ const Banner = () => {
                         <img
                             src={image || PlaceholderImage}
                             alt="Banner"
-                            className="w-full h-full object-contain transition-opacity duration-300"
+                            className="w-full h-full object-cover transition-opacity duration-300"
                             style={{ opacity: image ? 1 : 0.8 }}
                             data-testid="banner-image"
                         />
